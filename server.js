@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const connectDB = require('./db');
 const db = connectDB();
 
+const app = express();
+
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
         req.rawBody = buf.toString();
