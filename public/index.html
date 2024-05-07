@@ -4,13 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #ordersContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .order {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 300ms;
+        }
+    </style>
 </head>
 <body>
     <h1>Orders Dashboard</h1>
     <label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">5</span></label>
     <input type="range" id="fetchRateSlider" min="1" max="10" value="5" step="1">
     <div id="ordersContainer"></div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('ordersContainer');
@@ -18,14 +33,28 @@
             const rateDisplay = document.getElementById('rateDisplay');
             let fetchInterval = parseInt(fetchRateSlider.value) * 1000;
 
+            function getColorByElapsedTime(minutes) {
+                const red = Math.min(255, Math.floor(255 * (minutes / 10)));
+                const green = Math.max(0, 255 - Math.floor(255 * (minutes / 10)));
+                return `rgb(${red}, ${green}, 0)`;
+            }
+
             function fetchOrders() {
                 fetch('/api/getOrders')
                     .then(response => response.json())
                     .then(orders => {
                         container.innerHTML = ''; // Clear current orders
                         orders.forEach(order => {
+                            const elapsedMinutes = (new Date() - new Date(order.created_at)) / 60000;
+                            const color = getColorByElapsedTime(elapsedMinutes);
+
                             const orderDiv = document.createElement('div');
-                            orderDiv.innerHTML = `Order ID: ${order.order_id}, Items: ${JSON.stringify(order.items)}, Status: ${order.status} <button onclick="markComplete('${order.order_id}')">Mark Complete</button>`;
+                            orderDiv.classList.add('order');
+                            orderDiv.style.backgroundColor = color;
+                            orderDiv.innerHTML = `
+                                <strong>Order ID:</strong> ${order.order_id}<br>
+                                <strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}
+                            `;
                             container.appendChild(orderDiv);
                         });
                     })
