@@ -2,6 +2,9 @@ const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 
+const connectDB = require('./db');
+const db = connectDB();
+
 const app = express();
 app.use(bodyParser.json());
 
