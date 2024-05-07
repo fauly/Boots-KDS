@@ -1,12 +1,25 @@
 const express = require('express');
-const crypto = require('crypto');
 const bodyParser = require('body-parser');
-
-const connectDB = require('./db');
-const db = connectDB();
+const mysql = require('mysql');
 
 const app = express();
-// Middleware to capture raw body
+
+// Database connection setup
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
+
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+        return;
+    }
+    console.log('MySQL connected successfully');
+});
+
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
         req.rawBody = buf.toString();
@@ -15,40 +28,15 @@ app.use(bodyParser.json({
 
 app.use(express.static('public'));
 
-const SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature Key
-
-// Helper function to verify Square's webhook signature
-function isValidSignature(req) {
-    const signature = req.headers['x-square-signature'];
-    const url = `https://kds.dirtyboots.cafe/api/orders`; 
-    const hmac = crypto.createHmac('sha256', SIGNATURE_KEY);
-    const stringToSign = url + req.rawBody.toString('utf8');
-
-    console.log("String to Sign:", stringToSign);
-
-    hmac.update(stringToSign);
-    const calculatedSignature = hmac.digest('base64');
-
-    console.log("Expected Signature:", calculatedSignature);
-    console.log("Received Signature:", signature);
-
-    return signature === calculatedSignature;
-}
-
-
 app.post('/api/orders', (req, res) => {
-    if (!isValidSignature(req)) {
-        console.error('Failed signature verification');
-        return res.status(401).send('Unauthorized');
-    }
+    console.log('Received webhook:', req.body);
 
-    console.log('Received verified webhook:', req.body);
-    // Process the webhook payload
-    if(req.body.type === "order.updated") { // Check the type of event
-        const orderDetails = req.body.data; // Assuming 'data' contains order details
-        // Store order details in the database
-        const query = 'INSERT INTO orders (order_id, items, status) VALUES (?, ?, ?)';
-        db.query(query, [orderDetails.id, JSON.stringify(orderDetails.items), 'incomplete'], (err, results) => {
+    // Assuming the data received matches the schema you've outlined
+    if (req.body.type === "order.created") {
+        const orderDetails = req.body.data.object.order_created;
+
+        const query = 'INSERT INTO orders (order_id, items, status, created_at) VALUES (?, ?, ?, ?)';
+        db.query(query, [orderDetails.order_id, JSON.stringify(orderDetails), 'incomplete', orderDetails.created_at], (err, results) => {
             if (err) {
                 console.error('Failed to insert order:', err);
                 return res.status(500).send('Database error');
@@ -57,9 +45,9 @@ app.post('/api/orders', (req, res) => {
             res.status(200).send('Webhook processed');
         });
     } else {
+        console.log('Event type not handled:', req.body.type);
         res.status(200).send('Event type not handled');
     }
-    res.status(200).send('Webhook processed');
 });
 
 app.get('*', (req, res) => {
