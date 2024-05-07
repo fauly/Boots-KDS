@@ -1,6 +1,12 @@
 const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
+const { Client, Environment } = require('square');
+
+const squareClient = new Client({
+    accessToken: process.env.SQUARE_ACCESS_TOKEN,
+    environment: Environment.Sandbox, // Use Environment.Sandbox for testing
+});
 
 const connectDB = require('./db');
 const db = connectDB();
@@ -14,6 +20,32 @@ app.use(bodyParser.json({
 }));
 
 app.use(express.static('public'));
+
+async function retrieveOrder(orderId) {
+    try {
+        const { result } = await squareClient.ordersApi.retrieveOrder(orderId);
+        console.log(result);
+        // Process the order details as needed
+        return result.order;
+    } catch (error) {
+        console.error('Error retrieving order from Square:', error);
+        throw error;
+    }
+}
+
+const insertOrder = async (orderDetails) => {
+    const order = await retrieveOrder(orderDetails.order_id);
+    const lineItems = JSON.stringify(order.line_items);
+    const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
+
+    db.query(query, [order.id, lineItems, 'incomplete'], (err, results) => {
+        if (err) {
+            console.error('Failed to insert order:', err);
+            return;
+        }
+        console.log('Order inserted:', results);
+    });
+};
 
 app.post('/api/orders', (req, res) => {
     console.log('Received webhook:', req.body);
