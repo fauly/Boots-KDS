@@ -6,7 +6,13 @@ const connectDB = require('./db');
 const db = connectDB();
 
 const app = express();
-app.use(bodyParser.json());
+// Middleware to capture raw body
+app.use(bodyParser.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString();
+    }
+}));
+
 app.use(express.static('public'));
 
 const SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature Key
