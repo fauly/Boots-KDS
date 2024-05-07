@@ -1,20 +1,11 @@
 const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
-const http = require('http');
-const socketIo = require('socket.io');
 
 const connectDB = require('./db');
 const db = connectDB();
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server); // Setup Socket.IO
-
-app.use((req, res, next) => {
-    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; connect-src 'self';");
-    next();
-});
 
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
@@ -23,27 +14,6 @@ app.use(bodyParser.json({
 }));
 
 app.use(express.static('public'));
-
-// WebSocket connection
-io.on('connection', (socket) => {
-    console.log('New client connected');
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-});
-
-// Fetch orders and emit to connected clients
-function fetchAndEmitOrders() {
-    const query = 'SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC';
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Failed to fetch orders:', err);
-            return;
-        }
-        io.emit('order data', results); // Emitting order data to all connected clients
-    });
-}
 
 app.post('/api/orders', (req, res) => {
     console.log('Received webhook:', req.body);
@@ -61,8 +31,6 @@ app.post('/api/orders', (req, res) => {
             }
             console.log('Order inserted:', results);
 
-            // Fetch and emit orders after new order insertion
-            fetchAndEmitOrders(); 
             res.status(200).send('Webhook processed');
         });
     } else {
@@ -81,6 +49,20 @@ app.get('/api/getOrders', (req, res) => {
         }
         console.log('Orders fetched:', results);
         res.json(results);
+    });
+});
+
+app.post('/api/markComplete', (req, res) => {
+    const orderId = req.body.orderId;
+    const query = 'UPDATE orders SET status = "complete" WHERE order_id = ?';
+
+    db.query(query, [orderId], (err, results) => {
+        if (err) {
+            console.error('Failed to mark order as complete:', err);
+            return res.status(500).send('Database error');
+        }
+        console.log('Order marked as complete:', results);
+        res.json({ success: true, message: 'Order marked as complete', orderId });
     });
 });
 

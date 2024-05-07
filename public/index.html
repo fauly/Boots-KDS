@@ -4,25 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Dashboard</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const socket = io('https://kds.dirtyboots.cafe:3000'); // Connect to Socket.IO server
-            const container = document.getElementById('ordersContainer');
-
-            socket.on('order data', function (orders) {
-                container.innerHTML = ''; // Clear current orders
-                orders.forEach(order => {
-                    const orderDiv = document.createElement('div');
-                    orderDiv.textContent = `Order ID: ${order.order_id}, Items: ${JSON.stringify(order.items)}, Status: ${order.status}`;
-                    container.appendChild(orderDiv);
-                });
-            });
-        });
-    </script>
 </head>
 <body>
     <h1>Orders Dashboard</h1>
     <div id="ordersContainer"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('ordersContainer');
+
+            function fetchOrders() {
+                fetch('/api/getOrders')
+                    .then(response => response.json())
+                    .then(orders => {
+                        container.innerHTML = ''; // Clear current orders
+                        orders.forEach(order => {
+                            const orderDiv = document.createElement('div');
+                            orderDiv.innerHTML = `Order ID: ${order.order_id}, Items: ${JSON.stringify(order.items)}, Status: ${order.status} <button onclick="markComplete('${order.order_id}')">Mark Complete</button>`;
+                            container.appendChild(orderDiv);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching orders:', error));
+            }
+
+            function markComplete(orderId) {
+                fetch('/api/markComplete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ orderId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Order marked as complete:', data);
+                    fetchOrders(); // Refresh the list
+                })
+                .catch(error => console.error('Error marking order complete:', error));
+            }
+
+            window.markComplete = markComplete; // Expose function to global scope
+
+            setInterval(fetchOrders, 5000); // Fetch orders every 5 seconds
+            fetchOrders(); // Initial fetch
+        });
+    </script>
 </body>
 </html>
