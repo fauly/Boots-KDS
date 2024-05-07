@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 const { Client, Environment } = require('square');
 
 console.log(process.env.SQUARE_ACCESS_TOKEN);
