@@ -3,7 +3,15 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 const connectDB = require('./db');
-connectDB();
+const db = connectDB();
+
+// Example query
+db.query('SELECT * FROM tableName', (err, results) => {
+    if (err) throw err;
+    console.log(results);
+});
+
+db.end();
 
 const app = express();
 const server = http.createServer(app);
