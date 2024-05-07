@@ -11,6 +11,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server); // Setup Socket.IO
 
+app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; connect-src 'self';");
+    next();
+});
+
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
         req.rawBody = buf.toString();
