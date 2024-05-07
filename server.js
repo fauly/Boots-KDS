@@ -9,15 +9,25 @@ const app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const SQUARE_SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature Key
+const SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature Key
 
-app.post('/api/orders', (req, res) => {
+// Helper function to verify Square's webhook signature
+function isValidSignature(req) {
     const signature = req.headers['x-square-signature'];
-    const url = 'https://' + req.headers.host + req.originalUrl; // Full URL to your webhook endpoint
+    const url = `https://${req.headers.host}${req.originalUrl}`;
     const stringBody = JSON.stringify(req.body);
 
-    if (!verifySignature(stringBody, signature, SQUARE_SIGNATURE_KEY, url)) {
-        return res.status(401).send('Signature verification failed');
+    const hmac = crypto.createHmac('sha256', SIGNATURE_KEY);
+    hmac.update(url + stringBody);
+    const calculatedSignature = hmac.digest('base64');
+
+    return signature === calculatedSignature;
+}
+
+app.post('/api/orders', (req, res) => {
+    if (!isValidSignature(req)) {
+        console.error('Failed signature verification');
+        return res.status(401).send('Unauthorized');
     }
 
     console.log('Received verified webhook:', req.body);
@@ -39,13 +49,6 @@ app.post('/api/orders', (req, res) => {
     }
     res.status(200).send('Webhook processed');
 });
-
-function verifySignature(body, signature, key, url) {
-    const stringToSign = url + body;
-    const hmac = crypto.createHmac('sha1', key);
-    const hash = hmac.update(stringToSign).digest('base64');
-    return hash === signature;
-}
 
 app.get('*', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
