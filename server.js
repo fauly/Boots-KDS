@@ -32,6 +32,27 @@ io.on('connection', (socket) => {
   });
 });
 
+app.post('/api/orders', express.json(), (req, res) => {
+    console.log('Webhook received:', req.body);
+
+    // Process the webhook payload
+    if(req.body.type === "order.updated") { // Check the type of event
+        const orderDetails = req.body.data; // Assuming 'data' contains order details
+        // Store order details in the database
+        const query = 'INSERT INTO orders (order_id, items, status) VALUES (?, ?, ?)';
+        db.query(query, [orderDetails.id, JSON.stringify(orderDetails.items), 'incomplete'], (err, results) => {
+            if (err) {
+                console.error('Failed to insert order:', err);
+                return res.status(500).send('Database error');
+            }
+            console.log('Order inserted:', results);
+            res.status(200).send('Webhook processed');
+        });
+    } else {
+        res.status(200).send('Event type not handled');
+    }
+});
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
