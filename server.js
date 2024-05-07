@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const { Client, Environment } = require('square');
 
-print(process.env.SQUARE_ACCESS_TOKEN);
+console.log(process.env.SQUARE_ACCESS_TOKEN);
 
 const squareClient = new Client({
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
