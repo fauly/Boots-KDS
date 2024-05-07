@@ -7,6 +7,7 @@ const db = connectDB();
 
 const app = express();
 app.use(bodyParser.json());
+app.use(express.static('public'));
 
 const SQUARE_SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature Key
 
