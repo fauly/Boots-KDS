@@ -1,40 +1,22 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-
-const connectDB = require('./db');
-const db = connectDB();
-
-// Example query
-db.query('SELECT * FROM orders', (err, results) => {
-    if (err) throw err;
-    console.log(results);
-});
-
-db.end();
+const crypto = require('crypto');
+const bodyParser = require('body-parser');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 3000;
+const SQUARE_SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature Key
 
-app.use(express.static('public'));
+app.post('/api/orders', (req, res) => {
+    const signature = req.headers['x-square-signature'];
+    const url = 'https://' + req.headers.host + req.originalUrl; // Full URL to your webhook endpoint
+    const stringBody = JSON.stringify(req.body);
 
-app.get('*', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
+    if (!verifySignature(stringBody, signature, SQUARE_SIGNATURE_KEY, url)) {
+        return res.status(401).send('Signature verification failed');
+    }
 
-io.on('connection', (socket) => {
-  console.log('New client connected');
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
-});
-
-app.post('/api/orders', express.json(), (req, res) => {
-    console.log('Webhook received:', req.body);
-
+    console.log('Received verified webhook:', req.body);
     // Process the webhook payload
     if(req.body.type === "order.updated") { // Check the type of event
         const orderDetails = req.body.data; // Assuming 'data' contains order details
@@ -51,8 +33,17 @@ app.post('/api/orders', express.json(), (req, res) => {
     } else {
         res.status(200).send('Event type not handled');
     }
+    res.status(200).send('Webhook processed');
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+function verifySignature(body, signature, key, url) {
+    const stringToSign = url + body;
+    const hmac = crypto.createHmac('sha1', key);
+    const hash = hmac.update(stringToSign).digest('base64');
+    return hash === signature;
+}
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on HTTPS port ${PORT}`);
 });
