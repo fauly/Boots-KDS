@@ -43,26 +43,29 @@ function fetchAndEmitOrders() {
 app.post('/api/orders', (req, res) => {
     console.log('Received webhook:', req.body);
 
-    // Assuming the data received matches the schema you've outlined
+    // Check the type of the event
     if (req.body.type === "order.created") {
         const orderDetails = req.body.data.object.order_created;
-
         const query = 'INSERT INTO orders (order_id, items, status, created_at) VALUES (?, ?, ?, ?)';
+        
+        // Insert order details into the database
         db.query(query, [orderDetails.order_id, JSON.stringify(orderDetails), 'incomplete', orderDetails.created_at], (err, results) => {
             if (err) {
                 console.error('Failed to insert order:', err);
                 return res.status(500).send('Database error');
             }
             console.log('Order inserted:', results);
+
+            // Fetch and emit orders after new order insertion
+            fetchAndEmitOrders(); 
             res.status(200).send('Webhook processed');
         });
     } else {
         console.log('Event type not handled:', req.body.type);
         res.status(200).send('Event type not handled');
     }
-    fetchAndEmitOrders(); // Fetch and emit after processing new order
-    res.status(200).send('Order processed');
 });
+
 
 app.get('/api/getOrders', (req, res) => {
     const query = 'SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC';
