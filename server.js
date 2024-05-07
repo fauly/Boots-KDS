@@ -1,24 +1,9 @@
 const express = require('express');
+const crypto = require('crypto');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
 
-const app = express();
-
-// Database connection setup
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
-
-db.connect(err => {
-    if (err) {
-        console.error('Error connecting to MySQL:', err);
-        return;
-    }
-    console.log('MySQL connected successfully');
-});
+const connectDB = require('./db');
+const db = connectDB();
 
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
