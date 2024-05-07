@@ -21,12 +21,9 @@ const SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature
 function isValidSignature(req) {
     const signature = req.headers['x-square-signature'];
     const url = `https://${req.headers.host}${req.originalUrl}`;
-    const stringBody = JSON.stringify(req.body);
-
     const hmac = crypto.createHmac('sha256', SIGNATURE_KEY);
-    hmac.update(url + stringBody);
+    hmac.update(url + req.rawBody);  // Use raw body for hashing
     const calculatedSignature = hmac.digest('base64');
-
     return signature === calculatedSignature;
 }
 
