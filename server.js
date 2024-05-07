@@ -30,13 +30,19 @@ async function retrieveOrder(orderId) {
     }
 }
 
-async function insertOrder(orderDetails) {
+const insertOrder = async (orderDetails) => {
+    const orderId = orderDetails.id; // Ensure this is the correct path to the order ID
+    if (!orderId) {
+        console.error('Order ID not found in the details:', orderDetails);
+        return; // Exit if no order ID is found to prevent further errors
+    }
+    
     try {
-        const order = await retrieveOrder(orderDetails.id); // Assuming order_id is from webhook
+        const order = await retrieveOrder(orderId);
         const lineItems = JSON.stringify(order.line_items); // Storing line items as JSON string
         const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
         
-        db.query(query, [order.id, lineItems, 'incomplete'], (err, results) => {
+        db.query(query, [orderId, lineItems, 'incomplete'], (err, results) => {
             if (err) {
                 console.error('Failed to insert order:', err);
                 return;
@@ -46,12 +52,12 @@ async function insertOrder(orderDetails) {
     } catch (error) {
         console.error('Failed to process order:', error);
     }
-}
+};
 
 app.post('/api/orders', async (req, res) => {
     console.log('Received webhook:', req.body);
     
-    if (req.body.type === "order.created" && req.body.data.object.order_created) {
+    if (req.body.type === "order.created" && req.body.data && req.body.data.object && req.body.data.object.order_created) {
         await insertOrder(req.body.data.object.order_created);
         res.status(200).send('Webhook processed');
     } else {
