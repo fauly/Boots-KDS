@@ -20,18 +20,17 @@ const SIGNATURE_KEY = process.env.SQUARE_SIGNATURE_KEY; // Your Square Signature
 // Helper function to verify Square's webhook signature
 function isValidSignature(req) {
     const signature = req.headers['x-square-signature'];
-    // This URL should be the public URL used by Square to send webhooks
     const url = `https://kds.dirtyboots.cafe/api/orders`; 
     const hmac = crypto.createHmac('sha256', SIGNATURE_KEY);
-    const stringToSign = url + req.rawBody;
+    const stringToSign = url + req.rawBody.toString('utf8');
 
-    console.log("String to Sign:", stringToSign);  // Log for debugging
+    console.log("String to Sign:", stringToSign);
 
     hmac.update(stringToSign);
     const calculatedSignature = hmac.digest('base64');
 
-    console.log("Expected Signature:", calculatedSignature);  // Log for debugging
-    console.log("Received Signature:", signature);  // Log for debugging
+    console.log("Expected Signature:", calculatedSignature);
+    console.log("Received Signature:", signature);
 
     return signature === calculatedSignature;
 }
