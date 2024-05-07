@@ -21,7 +21,7 @@ app.post('/api/orders', (req, res) => {
     // Check the type of the event
     if (req.body.type === "order.created") {
         const orderDetails = req.body.data.object.order_created;
-        const query = 'INSERT INTO orders (order_id, items, status, created_at) VALUES (?, ?, ?, ?)';
+        const query = 'INSERT INTO orders (order_id, items, status, created_at) VALUES (?, ?, ?, NOW())';
         
         // Insert order details into the database
         db.query(query, [orderDetails.order_id, JSON.stringify(orderDetails), 'incomplete', orderDetails.created_at], (err, results) => {
