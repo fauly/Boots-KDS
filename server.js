@@ -12,20 +12,17 @@ const connectDB = require('./db');
 const db = connectDB();
 
 const app = express();
-
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
         req.rawBody = buf.toString();
     }
 }));
-
 app.use(express.static('public'));
 
 async function retrieveOrder(orderId) {
     try {
         const { result } = await squareClient.ordersApi.retrieveOrder(orderId);
-        console.log(result);
-        // Process the order details as needed
+        console.log('Order retrieved:', result.order);
         return result.order;
     } catch (error) {
         console.error('Error retrieving order from Square:', error);
@@ -33,44 +30,35 @@ async function retrieveOrder(orderId) {
     }
 }
 
-const insertOrder = async (orderDetails) => {
-    const order = await retrieveOrder(orderDetails.order_id);
-    const lineItems = JSON.stringify(order.line_items);
-    const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
-
-    db.query(query, [order.id, lineItems, 'incomplete'], (err, results) => {
-        if (err) {
-            console.error('Failed to insert order:', err);
-            return;
-        }
-        console.log('Order inserted:', results);
-    });
-};
-
-app.post('/api/orders', (req, res) => {
-    console.log('Received webhook:', req.body);
-
-    // Check the type of the event
-    if (req.body.type === "order.created") {
-        const orderDetails = req.body.data.object.order_created;
-        const query = 'INSERT INTO orders (order_id, items, status, created_at) VALUES (?, ?, ?, NOW())';
+async function insertOrder(orderDetails) {
+    try {
+        const order = await retrieveOrder(orderDetails.id); // Assuming order_id is from webhook
+        const lineItems = JSON.stringify(order.line_items); // Storing line items as JSON string
+        const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
         
-        // Insert order details into the database
-        db.query(query, [orderDetails.order_id, JSON.stringify(orderDetails), 'incomplete', orderDetails.created_at], (err, results) => {
+        db.query(query, [order.id, lineItems, 'incomplete'], (err, results) => {
             if (err) {
                 console.error('Failed to insert order:', err);
-                return res.status(500).send('Database error');
+                return;
             }
             console.log('Order inserted:', results);
-
-            res.status(200).send('Webhook processed');
         });
+    } catch (error) {
+        console.error('Failed to process order:', error);
+    }
+}
+
+app.post('/api/orders', async (req, res) => {
+    console.log('Received webhook:', req.body);
+    
+    if (req.body.type === "order.created" && req.body.data.object.order_created) {
+        await insertOrder(req.body.data.object.order_created);
+        res.status(200).send('Webhook processed');
     } else {
-        console.log('Event type not handled:', req.body.type);
-        res.status(200).send('Event type not handled');
+        console.log('Event type not handled or missing order details:', req.body.type);
+        res.status(400).send('Event type not handled or missing order details');
     }
 });
-
 
 app.get('/api/getOrders', (req, res) => {
     const query = 'SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC';
@@ -97,7 +85,6 @@ app.post('/api/markComplete', (req, res) => {
         res.json({ success: true, message: 'Order marked as complete', orderId });
     });
 });
-
 
 app.get('*', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
