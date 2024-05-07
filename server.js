@@ -19,8 +19,10 @@ const io = socketIo(server);
 
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+app.use(express.static('public'));
+
+app.get('*', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 io.on('connection', (socket) => {
