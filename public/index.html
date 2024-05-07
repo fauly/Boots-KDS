@@ -34,8 +34,18 @@
             let fetchInterval = parseInt(fetchRateSlider.value) * 1000;
 
             function getColorByElapsedTime(minutes) {
-                const red = Math.min(255, Math.floor(255 * (minutes / 10)));
-                const green = Math.max(0, 255 - Math.floor(255 * (minutes / 10)));
+                let red, green;
+
+                if (minutes <= 5) {
+                    // From 0 to 5 minutes - transition from green to orange
+                    red = Math.floor(255 * (minutes / 5)); // Red increases from 0 to 255 over 5 minutes
+                    green = 255; // Green stays full until 5 minutes
+                } else {
+                    // From 5 to 10 minutes - transition from orange to red
+                    red = 255; // Red stays full
+                    green = Math.max(0, 255 - Math.floor(255 * ((minutes - 5) / 5))); // Green decreases from 255 to 0 from 5 to 10 minutes
+                }
+
                 return `rgb(${red}, ${green}, 0)`;
             }
 
