@@ -85,7 +85,7 @@ app.get('/api/getOrders', (req, res) => {
 });
 
 
-app.get('/index.html.var', (req, res) => {
+app.get('*', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 
