@@ -56,15 +56,39 @@ const insertOrder = async (orderDetails) => {
 
 app.post('/api/orders', async (req, res) => {
     console.log('Received webhook:', req.body);
-    
+
     if (req.body.type === "order.created" && req.body.data && req.body.data.object && req.body.data.object.order_created) {
-        await insertOrder(req.body.data.object.order_created);
-        res.status(200).send('Webhook processed');
+        const orderDetails = req.body.data.object.order_created;
+        const orderId = orderDetails.order_id; // Correctly accessing the order_id
+
+        if (!orderId) {
+            console.log('Order ID is missing in the received data:', orderDetails);
+            return res.status(400).send('Order ID missing');
+        }
+
+        try {
+            const order = await retrieveOrder(orderId);
+            const lineItems = JSON.stringify(order.line_items); // Storing line items as JSON string
+            const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
+        
+            db.query(query, [orderId, lineItems, 'incomplete'], (err, results) => {
+                if (err) {
+                    console.error('Failed to insert order:', err);
+                    return res.status(500).send('Database error');
+                }
+                console.log('Order inserted:', results);
+                res.status(200).send('Webhook processed');
+            });
+        } catch (error) {
+            console.error('Failed to process order:', error);
+            res.status(500).send('Error processing order');
+        }
     } else {
         console.log('Event type not handled or missing order details:', req.body.type);
         res.status(400).send('Event type not handled or missing order details');
     }
 });
+
 
 app.get('/api/getOrders', (req, res) => {
     const query = 'SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC';
