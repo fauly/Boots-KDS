@@ -6,7 +6,7 @@ const connectDB = require('./db');
 const db = connectDB();
 
 // Example query
-db.query('SELECT * FROM tableName', (err, results) => {
+db.query('SELECT * FROM orders', (err, results) => {
     if (err) throw err;
     console.log(results);
 });
