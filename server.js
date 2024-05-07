@@ -37,6 +37,19 @@ app.post('/api/orders', (req, res) => {
     }
 });
 
+app.get('/api/getOrders', (req, res) => {
+    const query = 'SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Failed to fetch orders:', err);
+            return res.status(500).send('Database error');
+        }
+        console.log('Orders fetched:', results);
+        res.json(results);
+    });
+});
+
+
 app.get('*', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
