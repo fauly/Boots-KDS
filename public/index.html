@@ -7,7 +7,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const socket = io(); // Connect to Socket.IO server
+            const socket = io('https://kds.dirtyboots.cafe:3000'); // Connect to Socket.IO server
             const container = document.getElementById('ordersContainer');
 
             socket.on('order data', function (orders) {
