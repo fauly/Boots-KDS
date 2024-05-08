@@ -62,7 +62,7 @@ app.post('/api/orders', async (req, res) => {
             const lineItems = JSON.stringify(order.lineItems);
             const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
 
-            db.query(query, [orderId, lineItems, givenName, 'incomplete'], (err, results) => {
+            db.query(query, [orderId, givenName, lineItems, 'incomplete'], (err, results) => {
                 if (err) {
                     console.error('Failed to insert order:', err);
                     return res.status(500).send('Database error');
