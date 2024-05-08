@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders Dashboard</title>
+    <title>Boots KDS</title>
     <style>
-        body { 
+body { 
             font-family: Arial, sans-serif; 
             background-color: black; 
             color: white; 
             text-transform: uppercase;
         }
         #ordersContainer {
-            display: flex;
-            flex-direction: column-reverse; /* Display oldest first */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Grid-based system */
             gap: 10px;
+            margin: 10px;
         }
         .order {
             background-color: #333; /* Dark background for each order */
@@ -22,6 +23,8 @@
             padding: 10px;
             border-radius: 5px;
             transition: background-color 300ms;
+            display: flex;
+            flex-direction: column;
         }
         .order button {
             padding: 5px 10px;
@@ -38,6 +41,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            background-color: #000; /* Highlighted black background */
+            color: #fff;
         }
         th, td {
             border: 1px solid #666;
@@ -47,12 +52,25 @@
         th {
             background-color: #555;
         }
+        #fetchBar {
+            position: absolute;
+            width: 50%;
+            bottom:2%;
+            left:50%;
+            transform:translateX(-50%);
+        }
+        h1 {
+            width: 100%;
+            text-align: center;
+            height:10px;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Orders Dashboard</h1>
-    <label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">1</span></label>
-    <input type="range" id="fetchRateSlider" min="0.5" max="10" value="1" step="0.5">
+    <h1>Boots KDS - 1.0</h1>
+    <div id="fetchBar"><label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">1</span></label>
+    <input type="range" id="fetchRateSlider" min="0" max="10" value="1" step="1"></div>
     <div id="ordersContainer"></div>
 
     <script>
@@ -79,7 +97,7 @@
                     .then(response => response.json())
                     .then(orders => {
                         container.innerHTML = ''; // Clear current orders
-                        orders.forEach(order => {
+                        orders.slice(0, 12).forEach(order => { // Display only the latest 12 orders
                             const elapsedMinutes = (new Date() - new Date(order.created_at)) / 60000;
                             const color = getColorByElapsedTime(elapsedMinutes);
 
