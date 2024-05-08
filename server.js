@@ -97,8 +97,14 @@ app.get('/api/getOrders', (req, res) => {
             console.error('Failed to fetch orders:', err);
             return res.status(500).send('Database error');
         }
-        console.log('Orders fetched:', results);
-        res.json(results);
+        const orders = results.map(order => {
+            return {
+                ...order,
+                line_items: JSON.parse(order.line_items) // Ensure line_items is an array
+            };
+        });
+        console.log('Orders fetched:', orders);
+        res.json(orders);
     });
 });
 

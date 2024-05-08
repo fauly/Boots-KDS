@@ -68,11 +68,16 @@
                             const orderDiv = document.createElement('div');
                             orderDiv.classList.add('order');
                             orderDiv.style.backgroundColor = color;
-                            
+
                             let lineItemsHtml = '';
-                            order.line_items.forEach(item => {
-                                lineItemsHtml += `<div>${item.quantity} x ${item.name}</div>`;
-                            });
+                            // Check if line_items is an array
+                            if (Array.isArray(order.line_items)) {
+                                order.line_items.forEach(item => {
+                                    lineItemsHtml += `<div>${item.quantity} x ${item.name}</div>`;
+                                });
+                            } else {
+                                console.error('line_items is not an array:', order.line_items);
+                            }
 
                             orderDiv.innerHTML = `
                                 <strong>${order.given_name}</strong><br>
