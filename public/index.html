@@ -47,12 +47,12 @@
 
             function getColorByElapsedTime(minutes) {
                 let red, green;
-                if (minutes <= 5) {
-                    red = Math.floor(255 * (minutes / 5));
+                if (minutes <= 2) {
+                    red = Math.floor(255 * (minutes / 2));
                     green = 255;
                 } else {
                     red = 255;
-                    green = Math.max(0, 255 - Math.floor(255 * ((minutes - 5) / 5)));
+                    green = Math.max(0, 255 - Math.floor(255 * ((minutes - 2) / 2)));
                 }
                 return `rgb(${red}, ${green}, 0)`;
             }
