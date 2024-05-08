@@ -83,6 +83,8 @@ app.post('/api/orders', async (req, res) => {
             console.error('Failed to process order:', error);
             res.status(500).send('Error processing order');
         }
+    } else if (req.body.type === "order.updated"){
+        res.status(200).send('Webhook processed');
     } else {
         console.log('Event type not handled or missing order details:', req.body.type);
         res.status(400).send('Event type not handled or missing order details');
