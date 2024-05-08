@@ -11,8 +11,7 @@ const squareClient = new Client({
     environment: Environment.Production,
 });
 
-const connectDB = require('./db');
-const db = connectDB();
+const db = require('./db');
 
 const app = express();
 app.use(bodyParser.json({
@@ -92,36 +91,31 @@ app.post('/api/orders', async (req, res) => {
 });
 
 
-app.get('/api/getOrders', (req, res) => {
-    const query = 'SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC';
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Failed to fetch orders:', err);
-            return res.status(500).send('Database error');
-        }
-        const orders = results.map(order => {
-            return {
-                ...order,
-                line_items: JSON.parse(order.line_items) // Ensure line_items is an array
-            };
-        });
+app.get('/api/getOrders', async (req, res) => {
+    try {
+        const [results] = await db.query('SELECT * FROM orders WHERE status = "incomplete" ORDER BY created_at DESC');
+        const orders = results.map(order => ({
+            ...order,
+            line_items: JSON.parse(order.line_items) // Parse line_items
+        }));
         console.log('Orders fetched:', orders);
         res.json(orders);
-    });
+    } catch (err) {
+        console.error('Failed to fetch orders:', err);
+        res.status(500).send('Database error');
+    }
 });
 
-app.post('/api/markComplete', (req, res) => {
+app.post('/api/markComplete', async (req, res) => {
     const orderId = req.body.orderId;
-    const query = 'UPDATE orders SET status = "complete" WHERE order_id = ?';
-
-    db.query(query, [orderId], (err, results) => {
-        if (err) {
-            console.error('Failed to mark order as complete:', err);
-            return res.status(500).send('Database error');
-        }
+    try {
+        const [results] = await db.query('UPDATE orders SET status = "complete" WHERE order_id = ?', [orderId]);
         console.log('Order marked as complete:', results);
         res.json({ success: true, message: 'Order marked as complete', orderId });
-    });
+    } catch (err) {
+        console.error('Failed to mark order as complete:', err);
+        res.status(500).send('Database error');
+    }
 });
 
 app.get('*', (req, res) => {
