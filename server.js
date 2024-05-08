@@ -53,7 +53,7 @@ const insertOrder = async (orderDetails) => {
     
     try {
         const order = await retrieveOrder(orderId);
-        const givenName = JSON.stringify(order.ticketName);
+        const givenName = JSON.stringify(order.ticket_name);
         const lineItems = JSON.stringify(order.line_items);
         const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
         
