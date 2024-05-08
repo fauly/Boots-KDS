@@ -44,33 +44,6 @@ async function retrieveCustomer(customerID) {
     }
 }
 
-const insertOrder = async (orderDetails) => {
-    const orderId = orderDetails.id; // Ensure this is the correct path to the order ID
-    if (!orderId) {
-        console.error('Order ID not found in the details:', orderDetails);
-        return; // Exit if no order ID is found to prevent further errors
-    }
-    
-    try {
-        const order = await retrieveOrder(orderId);
-        const givenName = JSON.stringify(order.ticket_name);
-        console.log(givenName);
-        console.log(order.ticketName)
-        const lineItems = JSON.stringify(order.line_items);
-        const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
-        
-        db.query(query, [orderId, lineItems,givenName, 'incomplete'], (err, results) => {
-            if (err) {
-                console.error('Failed to insert order:', err);
-                return;
-            }
-            console.log('Order inserted:', results);
-        });
-    } catch (error) {
-        console.error('Failed to process order:', error);
-    }
-};
-
 app.post('/api/orders', async (req, res) => {
     console.log('Received webhook:', req.body);
 
@@ -85,10 +58,11 @@ app.post('/api/orders', async (req, res) => {
 
         try {
             const order = await retrieveOrder(orderId);
-            const lineItems = JSON.stringify(order.line_items); // Storing line items as JSON string
-            const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
-        
-            db.query(query, [orderId, lineItems, 'incomplete'], (err, results) => {
+            const givenName = JSON.stringify(order.ticket_name);
+            const lineItems = JSON.stringify(order.line_items);
+            const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
+
+            db.query(query, [orderId, lineItems, givenName, 'incomplete'], (err, results) => {
                 if (err) {
                     console.error('Failed to insert order:', err);
                     return res.status(500).send('Database error');
