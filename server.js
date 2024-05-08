@@ -32,6 +32,16 @@ async function retrieveOrder(orderId) {
         throw error;
     }
 }
+async function retrieveCustomer(customerID) {
+    try {
+        const { result } = await squareClient.customersApi.retrieveCustomer(customerID);
+        console.log('Customer retrieved:', result.customer);
+        return result.customer;
+    } catch (error) {
+        console.error('Error retrieving customer from Square:', error);
+        throw error;
+    }
+}
 
 const insertOrder = async (orderDetails) => {
     const orderId = orderDetails.id; // Ensure this is the correct path to the order ID
@@ -42,10 +52,11 @@ const insertOrder = async (orderDetails) => {
     
     try {
         const order = await retrieveOrder(orderId);
+        const givenName = retrieveCustomer(orderDetails.customerId).given_name
         const lineItems = JSON.stringify(order.line_items); // Storing line items as JSON string
-        const query = 'INSERT INTO orders (order_id, line_items, status, created_at) VALUES (?, ?, ?, NOW())';
+        const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
         
-        db.query(query, [orderId, lineItems, 'incomplete'], (err, results) => {
+        db.query(query, [orderId, lineItems,givenName, 'incomplete'], (err, results) => {
             if (err) {
                 console.error('Failed to insert order:', err);
                 return;
