@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boots KDS</title>
+    <title>Boots KDS - 1.0</title>
     <style>
-body { 
+        body { 
             font-family: Arial, sans-serif; 
             background-color: black; 
             color: white; 
-            text-shadow: #000;
+            text-shadow: 1px 2px black;
             text-transform: uppercase;
         }
         #ordersContainer {
@@ -70,8 +70,10 @@ body {
 </head>
 <body>
     <h1>Boots KDS - 1.0</h1>
-    <div id="fetchBar"><label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">1</span></label>
-    <input type="range" id="fetchRateSlider" min="0" max="10" value="1" step="1"></div>
+    <div id="fetchBar">
+        <label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">1</span></label>
+        <input type="range" id="fetchRateSlider" min="0" max="10" value="1" step="1">
+    </div>
     <div id="ordersContainer"></div>
 
     <script>
@@ -98,7 +100,8 @@ body {
                     .then(response => response.json())
                     .then(orders => {
                         container.innerHTML = ''; // Clear current orders
-                        orders.slice(0, 12).forEach(order => { // Display only the latest 12 orders
+                        // Reverse and slice the orders to only show the oldest 12
+                        orders.reverse().slice(0, 12).forEach(order => {
                             const elapsedMinutes = (new Date() - new Date(order.created_at)) / 60000;
                             const color = getColorByElapsedTime(elapsedMinutes);
 
