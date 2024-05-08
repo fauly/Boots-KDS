@@ -44,6 +44,14 @@ async function retrieveCustomer(customerID) {
     }
 }
 
+function bigInt(key, value) {
+    if (typeof value === 'bigint') { // Check if the value is a BigInt
+        return value.toString(); // Convert BigInt to string
+    } else {
+        return value; // Return the value unchanged
+    }
+}
+
 app.post('/api/orders', async (req, res) => {
     console.log('Received webhook:', req.body);
 
@@ -59,9 +67,10 @@ app.post('/api/orders', async (req, res) => {
         try {
             const order = await retrieveOrder(orderId);
             const givenName = JSON.stringify(order.ticketName);
-            // const lineItems = JSON.stringify(order.lineItems);
+            const lineItems = JSON.stringify(order.lineItems, bigInt);
             const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
-
+            console.log('Given Name:', givenName);
+            console.log('Line Items:', lineItems);
             db.query(query, [orderId, givenName, lineItems, 'incomplete'], (err, results) => {
                 if (err) {
                     console.error('Failed to insert order:', err);
