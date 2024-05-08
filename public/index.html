@@ -113,8 +113,8 @@ body {
                             table.innerHTML = tableContent;
 
                             orderDiv.innerHTML = `
-                                <strong>${order.given_name}</strong><br>
-                                <strong>Date:</strong> ${new Date(order.created_at).toLocaleTimeString()}<br>
+                                <strong>${order.given_name}</strong>
+                                ${new Date(order.created_at).toLocaleTimeString()}<br>
                             `;
                             orderDiv.appendChild(table);
                             orderDiv.innerHTML += `<button onclick="markComplete('${order.order_id}')">Mark Complete</button>`;
