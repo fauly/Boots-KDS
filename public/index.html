@@ -6,68 +6,72 @@
     <title>Boots KDS - 1.0</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
-            background-color: black; 
-            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #121212; /* Darker shade for more modern look */
+            color: #E0E0E0; /* Soft white for text */
             text-transform: uppercase;
-            text-shadow: 1px 2px black;
+            margin: 0;
+            padding: 20px 0;
         }
         #ordersContainer {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Grid-based system */
-            gap: 10px;
-            margin: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 15px;
+            padding: 10px;
         }
         .order {
-            background-color: #333; /* Dark background for each order */
-            border: 1px solid #666;
-            padding: 10px;
-            border-radius: 5px;
+            background-color: #333; /* Subtle gray */
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Ensures space distribution */
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Adds shadow for depth */
         }
         .order button {
-            padding: 5px 10px;
+            padding: 10px 15px;
             margin-top: 10px;
-            background-color: #4CAF50;
+            background-color: #4CAF50; /* Stylish green */
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            align-self: center; /* Centers the button in the flex container */
-            width: 100%; /* Makes the button full width */
+            transition: background 0.3s ease; /* Smooth transition for hover effect */
         }
         .order button:hover {
-            background-color: #45a049;
+            background-color: #388E3C; /* Darker shade of green on hover */
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: #000; /* Highlighted black background */
-            color: #fff;
-            margin-bottom: auto; /* Pushes the button down */
+            margin-bottom: 10px; /* More space above the button */
         }
         th, td {
-            border: 1px solid #666;
+            border-bottom: 1px solid #666;
             padding: 8px;
             text-align: left;
         }
         th {
-            background-color: #555;
+            background-color: #555; /* Dark header */
         }
         #fetchBar {
-            position: absolute;
-            width: 50%;
-            bottom:2%;
-            left:50%;
-            transform:translateX(-50%);
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            padding: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
         }
         h1 {
-            width: 100%;
             text-align: center;
-            height:10px;
-            font-size: 20px;
+            margin: 10px 0;
+            font-size: 24px;
+        }
+        input[type="range"] {
+            width: 100px;
         }
     </style>
 </head>
