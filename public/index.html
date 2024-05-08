@@ -70,7 +70,7 @@
                             orderDiv.classList.add('order');
                             orderDiv.style.backgroundColor = color;
                             orderDiv.innerHTML = `
-                                <strong>Order ID:</strong> ${order.order_id}<br>
+                                <strong>${order.given_name}</strong><br>
                                 <strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}
                                 <button onclick="markComplete('${order.order_id}')">Mark Complete</button>
                             `;
