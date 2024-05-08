@@ -4,8 +4,6 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 const { Client, Environment } = require('square');
 
-console.log(process.env.SQUARE_ACCESS_TOKEN);
-
 const squareClient = new Client({
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
     environment: Environment.Production,
@@ -45,7 +43,7 @@ app.post('/api/orders', async (req, res) => {
 
     if (req.body.type === "order.created" && req.body.data && req.body.data.object && req.body.data.object.order_created) {
         const orderDetails = req.body.data.object.order_created;
-        const orderId = orderDetails.order_id; // Correctly accessing the order_id
+        const orderId = orderDetails.order_id;
 
         if (!orderId) {
             console.log('Order ID is missing in the received data:', orderDetails);
@@ -53,12 +51,18 @@ app.post('/api/orders', async (req, res) => {
         }
 
         try {
+            // Check if order already exists
+            const [existingOrder] = await db.query('SELECT * FROM orders WHERE order_id = ?', [orderId]);
+            if (existingOrder.length > 0) {
+                console.log('Order already processed:', orderId);
+                return res.status(200).send('Order already processed');
+            }
+
             const order = await retrieveOrder(orderId);
             const givenName = JSON.stringify(order.ticketName);
             const lineItems = JSON.stringify(order.lineItems, bigInt);
             const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
-            console.log('Given Name:', givenName);
-            console.log('Line Items:', lineItems);
+            
             db.query(query, [orderId, givenName, lineItems, 'incomplete'], (err, results) => {
                 if (err) {
                     console.error('Failed to insert order:', err);
