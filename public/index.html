@@ -9,7 +9,6 @@
             font-family: Arial, sans-serif; 
             background-color: black; 
             color: white; 
-            text-shadow: 1px 2px black;
             text-transform: uppercase;
         }
         #ordersContainer {
@@ -23,20 +22,20 @@
             border: 1px solid #666;
             padding: 10px;
             border-radius: 5px;
-            transition: background-color 300ms;
             display: flex;
             flex-direction: column;
+            justify-content: space-between; /* Ensures space distribution */
         }
         .order button {
             padding: 5px 10px;
             margin-top: 10px;
-            position: relative;
-            bottom: 5px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            align-self: center; /* Centers the button in the flex container */
+            width: 100%; /* Makes the button full width */
         }
         .order button:hover {
             background-color: #45a049;
@@ -46,6 +45,7 @@
             border-collapse: collapse;
             background-color: #000; /* Highlighted black background */
             color: #fff;
+            margin-bottom: auto; /* Pushes the button down */
         }
         th, td {
             border: 1px solid #666;
@@ -123,7 +123,10 @@
                                 ${new Date(order.created_at).toLocaleTimeString()}<br>
                             `;
                             orderDiv.appendChild(table);
-                            orderDiv.innerHTML += `<button onclick="markComplete('${order.order_id}')">Mark Complete</button>`;
+                            const button = document.createElement('button');
+                            button.onclick = function() { markComplete(order.order_id); };
+                            button.innerText = 'Mark Complete';
+                            orderDiv.appendChild(button);
                             container.appendChild(orderDiv);
                         });
                     })
