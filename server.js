@@ -32,6 +32,7 @@ async function retrieveOrder(orderId) {
         throw error;
     }
 }
+
 async function retrieveCustomer(customerID) {
     try {
         const { result } = await squareClient.customersApi.retrieveCustomer(customerID);
@@ -52,7 +53,7 @@ const insertOrder = async (orderDetails) => {
     
     try {
         const order = await retrieveOrder(orderId);
-        const givenName = retrieveCustomer(orderDetails.customerId).given_name
+        const givenName = retrieveCustomer(order.customerId).given_name
         const lineItems = JSON.stringify(order.line_items); // Storing line items as JSON string
         const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
         
