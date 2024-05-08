@@ -8,7 +8,7 @@ console.log(process.env.SQUARE_ACCESS_TOKEN);
 
 const squareClient = new Client({
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
-    environment: Environment.Sandbox, // Use Environment.Sandbox for testing
+    environment: Environment.Production,
 });
 
 const connectDB = require('./db');
