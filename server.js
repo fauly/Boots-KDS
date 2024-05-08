@@ -32,16 +32,16 @@ async function retrieveOrder(orderId) {
     }
 }
 
-async function retrieveCustomer(customerID) {
-    try {
-        const { result } = await squareClient.customersApi.retrieveCustomer(customerID);
-        console.log('Customer retrieved:', result.customer);
-        return result.customer;
-    } catch (error) {
-        console.error('Error retrieving customer from Square:', error);
-        throw error;
-    }
-}
+// async function retrieveCustomer(customerID) {
+//     try {
+//         const { result } = await squareClient.customersApi.retrieveCustomer(customerID);
+//         console.log('Customer retrieved:', result.customer);
+//         return result.customer;
+//     } catch (error) {
+//         console.error('Error retrieving customer from Square:', error);
+//         throw error;
+//     }
+// }
 
 function bigInt(key, value) {
     if (typeof value === 'bigint') { // Check if the value is a BigInt
@@ -82,8 +82,6 @@ app.post('/api/orders', async (req, res) => {
             console.error('Failed to process order:', error);
             res.status(500).send('Error processing order');
         }
-    } else if (req.body.type === "order.updated"){
-        res.status(200).send('Webhook processed');
     } else {
         console.log('Event type not handled or missing order details:', req.body.type);
         res.status(400).send('Event type not handled or missing order details');
