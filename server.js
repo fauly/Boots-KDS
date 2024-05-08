@@ -32,17 +32,6 @@ async function retrieveOrder(orderId) {
     }
 }
 
-// async function retrieveCustomer(customerID) {
-//     try {
-//         const { result } = await squareClient.customersApi.retrieveCustomer(customerID);
-//         console.log('Customer retrieved:', result.customer);
-//         return result.customer;
-//     } catch (error) {
-//         console.error('Error retrieving customer from Square:', error);
-//         throw error;
-//     }
-// }
-
 function bigInt(key, value) {
     if (typeof value === 'bigint') { // Check if the value is a BigInt
         return value.toString(); // Convert BigInt to string
