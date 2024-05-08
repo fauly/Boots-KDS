@@ -56,7 +56,6 @@
                 }
                 return `rgb(${red}, ${green}, 0)`;
             }
-
             function fetchOrders() {
                 fetch('/api/getOrders')
                     .then(response => response.json())
@@ -69,9 +68,16 @@
                             const orderDiv = document.createElement('div');
                             orderDiv.classList.add('order');
                             orderDiv.style.backgroundColor = color;
+                            
+                            let lineItemsHtml = '';
+                            order.line_items.forEach(item => {
+                                lineItemsHtml += `<div>${item.quantity} x ${item.name}</div>`;
+                            });
+
                             orderDiv.innerHTML = `
                                 <strong>${order.given_name}</strong><br>
-                                <strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}
+                                <strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}<br>
+                                ${lineItemsHtml}
                                 <button onclick="markComplete('${order.order_id}')">Mark Complete</button>
                             `;
                             container.appendChild(orderDiv);
