@@ -75,6 +75,42 @@ app.post('/api/orders', async (req, res) => {
             console.error('Failed to process order:', error);
             res.status(500).send('Error processing order');
         }
+    } else if (req.body.type === "payment.created" && req.body.data && req.body.data.object && req.body.data.object.payment){
+        const paymentDetails = req.body.data.object.payment;
+        console.log('Payment details:', paymentDetails);
+        const orderId = paymentDetails.order_id;
+
+        if (!orderId) {
+            console.log('Order ID is missing in the received data:', paymentDetails);
+            return res.status(400).send('Order ID missing');
+        }
+
+        try {
+            // Check if order already exists
+            const [existingOrder] = await db.query('SELECT * FROM orders WHERE order_id = ?', [orderId]);
+            if (existingOrder.length > 0) {
+                console.log('Order already processed:', orderId);
+                return res.status(200).send('Order already processed');
+            }
+
+            const order = await retrieveOrder(orderId);
+            const givenName = JSON.stringify(order.ticketName);
+            const lineItems = JSON.stringify(order.lineItems, bigInt);
+            const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
+            
+            db.query(query, [orderId, givenName, lineItems, 'incomplete'], (err, results) => {
+                if (err) {
+                    console.error('Failed to insert order:', err);
+                    return res.status(500).send('Database error');
+                }
+                console.log('Order inserted:', results);
+                res.status(200).send('Webhook processed');
+            });
+        } catch (error) {
+            console.error('Failed to process order:', error);
+            res.status(500).send('Error processing order');
+        }
+
     } else {
         console.log('Event type not handled or missing order details:', req.body.type);
         res.status(400).send('Event type not handled or missing order details');
