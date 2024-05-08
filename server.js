@@ -59,7 +59,7 @@ app.post('/api/orders', async (req, res) => {
         try {
             const order = await retrieveOrder(orderId);
             const givenName = JSON.stringify(order.ticketName);
-            const lineItems = JSON.stringify(order.lineItems);
+            // const lineItems = JSON.stringify(order.lineItems);
             const query = 'INSERT INTO orders (order_id, given_name, line_items, status, created_at) VALUES (?, ?, ?, ?, NOW())';
 
             db.query(query, [orderId, givenName, lineItems, 'incomplete'], (err, results) => {
