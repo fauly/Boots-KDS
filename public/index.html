@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: black; 
+            color: white; 
+            text-transform: uppercase;
+        }
         #ordersContainer {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: flex;
+            flex-direction: column-reverse; /* Display oldest first */
             gap: 10px;
         }
         .order {
-            background-color: #fff;
-            border: 1px solid #ccc;
+            background-color: #333; /* Dark background for each order */
+            border: 1px solid #666;
             padding: 10px;
             border-radius: 5px;
             transition: background-color 300ms;
@@ -30,12 +35,24 @@
         .order button:hover {
             background-color: #45a049;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #666;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
     <h1>Orders Dashboard</h1>
-    <label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">5</span></label>
-    <input type="range" id="fetchRateSlider" min="0.5" max="10" value="1" step=".5">
+    <label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">1</span></label>
+    <input type="range" id="fetchRateSlider" min="0.5" max="10" value="1" step="0.5">
     <div id="ordersContainer"></div>
 
     <script>
@@ -56,6 +73,7 @@
                 }
                 return `rgb(${red}, ${green}, 0)`;
             }
+
             function fetchOrders() {
                 fetch('/api/getOrders')
                     .then(response => response.json())
@@ -69,22 +87,19 @@
                             orderDiv.classList.add('order');
                             orderDiv.style.backgroundColor = color;
 
-                            let lineItemsHtml = '';
-                            // Check if line_items is an array
-                            if (Array.isArray(order.line_items)) {
-                                order.line_items.forEach(item => {
-                                    lineItemsHtml += `<div>${item.quantity} x ${item.name}</div>`;
-                                });
-                            } else {
-                                console.error('line_items is not an array:', order.line_items);
-                            }
+                            const table = document.createElement('table');
+                            let tableContent = `<tr><th>Quantity</th><th>Item</th></tr>`;
+                            order.line_items.forEach(item => {
+                                tableContent += `<tr><td>${item.quantity}</td><td>${item.name}</td></tr>`;
+                            });
+                            table.innerHTML = tableContent;
 
                             orderDiv.innerHTML = `
                                 <strong>${order.given_name}</strong><br>
                                 <strong>Date:</strong> ${new Date(order.created_at).toLocaleTimeString()}<br>
-                                ${lineItemsHtml}
-                                <button onclick="markComplete('${order.order_id}')">Mark Complete</button>
                             `;
+                            orderDiv.appendChild(table);
+                            orderDiv.innerHTML += `<button onclick="markComplete('${order.order_id}')">Mark Complete</button>`;
                             container.appendChild(orderDiv);
                         });
                     })
