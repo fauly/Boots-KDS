@@ -6,9 +6,9 @@
     <title>Boots KDS - 1.0</title>
     <style>
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #121212; /* Darker shade for more modern look */
-            color: #E0E0E0; /* Soft white for text */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
             text-transform: uppercase;
             text-shadow: 1px 2px black;
             margin: 0;
@@ -16,37 +16,37 @@
         }
         #ordersContainer {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 5px;
             padding: 5px;
         }
         .order {
-            background-color: #333; /* Subtle gray */
+            background-color: #333;
             border: none;
             padding: 5px;
             border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Adds shadow for depth */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         .order button {
             padding: 10px 15px;
             margin-top: 10px;
-            background-color: #4CAF50; /* Stylish green */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s ease; /* Smooth transition for hover effect */
+            transition: background 0.3s ease;
         }
         .order button:hover {
-            background-color: #388E3C; /* Darker shade of green on hover */
+            background-color: #388E3C;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px; /* More space above the button */
+            margin-bottom: 10px;
             background-color: #121212;
         }
         th, td {
@@ -55,7 +55,7 @@
             text-align: left;
         }
         th {
-            background-color: #555; /* Dark header */
+            background-color: #555;
         }
         #fetchBar {
             position: fixed;
@@ -109,7 +109,6 @@
                     .then(response => response.json())
                     .then(orders => {
                         container.innerHTML = ''; // Clear current orders
-                        // Reverse and slice the orders to only show the oldest 12
                         orders.reverse().slice(0, 12).forEach(order => {
                             const elapsedMinutes = (new Date() - new Date(order.created_at)) / 60000;
                             const color = getColorByElapsedTime(elapsedMinutes);
@@ -119,9 +118,12 @@
                             orderDiv.style.backgroundColor = color;
 
                             const table = document.createElement('table');
-                            let tableContent = ``;
+                            let tableContent = `<tr><th>Qty</th><th>Item</th></tr>`;
                             order.line_items.forEach(item => {
-                                tableContent += `<tr><td>${item.quantity}</td><td>${item.name}</td></tr>`;
+                                tableContent += `<tr><td>${item.quantity}</td><td>${item.name}${item.note ? `<br>- Note: ${item.note}` : ''}</td></tr>`;
+                                item.modifiers.forEach(mod => {
+                                    tableContent += `<tr><td></td><td>- ${mod.name}</td></tr>`;
+                                });
                             });
                             table.innerHTML = tableContent;
 
