@@ -1,89 +1,178 @@
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const container = document.getElementById('ordersContainer');
-        const fetchRateSlider = document.getElementById('fetchRateSlider');
-        const rateDisplay = document.getElementById('rateDisplay');
-        let fetchInterval = parseInt(fetchRateSlider.value) * 1000;
-    
-        function getColorByElapsedTime(minutes) {
-            let red, green;
-            if (minutes <= 2) {
-                red = Math.floor(255 * (minutes / 2));
-                green = 255;
-            } else {
-                red = 255;
-                green = Math.max(0, 255 - Math.floor(255 * ((minutes - 2) / 2)));
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boots KDS - 1.0</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+            text-transform: uppercase;
+            text-shadow: 1px 2px black;
+            margin: 0;
+            padding: 20px 0;
+        }
+        #ordersContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 5px;
+            padding: 5px;
+        }
+        .order {
+            background-color: #333;
+            border: none;
+            padding: 5px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .order button {
+            padding: 10px 15px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .order button:hover {
+            background-color: #388E3C;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            background-color: #121212;
+        }
+        th, td {
+            border-bottom: 1px solid #666;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #555;
+        }
+        #fetchBar {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            padding: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+        h1 {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 24px;
+        }
+        input[type="range"] {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Boots KDS - 1.0</h1>
+    <div id="fetchBar">
+        <label for="fetchRateSlider">Update Interval (seconds): <span id="rateDisplay">1</span></label>
+        <input type="range" id="fetchRateSlider" min="0" max="10" value="1" step="1">
+    </div>
+    <div id="ordersContainer"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('ordersContainer');
+            const fetchRateSlider = document.getElementById('fetchRateSlider');
+            const rateDisplay = document.getElementById('rateDisplay');
+            let fetchInterval = parseInt(fetchRateSlider.value) * 1000;
+        
+            function getColorByElapsedTime(minutes) {
+                let red, green;
+                if (minutes <= 2) {
+                    red = Math.floor(255 * (minutes / 2));
+                    green = 255;
+                } else {
+                    red = 255;
+                    green = Math.max(0, 255 - Math.floor(255 * ((minutes - 2) / 2)));
+                }
+                return `rgb(${red}, ${green}, 0)`;
             }
-            return `rgb(${red}, ${green}, 0)`;
-        }
-    
-        function fetchOrders() {
-            fetch('/api/getOrders')
-                .then(response => response.json())
-                .then(orders => {
-                    container.innerHTML = ''; // Clear current orders
-                    orders.reverse().slice(0, 12).forEach(order => {
-                        const elapsedMinutes = (new Date() - new Date(order.created_at)) / 60000;
-                        const color = getColorByElapsedTime(elapsedMinutes);
-    
-                        const orderDiv = document.createElement('div');
-                        orderDiv.classList.add('order');
-                        orderDiv.style.backgroundColor = color;
-    
-                        const table = document.createElement('table');
-                        let tableContent = `<tr><th>Qty</th><th>Item</th></tr>`;
-                        order.line_items.forEach(item => {
-                            tableContent += `<tr><td>${item.quantity}</td><td>${item.name}${item.note ? `<br>- Note: ${item.note}` : ''}</td></tr>`;
-                            if (item.modifiers && item.modifiers.length > 0) {
-                                item.modifiers.forEach(mod => {
-                                    tableContent += `<tr><td></td><td>- ${mod.name}</td></tr>`;
-                                });
-                            }
+        
+            function fetchOrders() {
+                fetch('/api/getOrders')
+                    .then(response => response.json())
+                    .then(orders => {
+                        container.innerHTML = ''; // Clear current orders
+                        orders.reverse().slice(0, 12).forEach(order => {
+                            const elapsedMinutes = (new Date() - new Date(order.created_at)) / 60000;
+                            const color = getColorByElapsedTime(elapsedMinutes);
+        
+                            const orderDiv = document.createElement('div');
+                            orderDiv.classList.add('order');
+                            orderDiv.style.backgroundColor = color;
+        
+                            const table = document.createElement('table');
+                            let tableContent = `<tr><th>Qty</th><th>Item</th></tr>`;
+                            order.line_items.forEach(item => {
+                                tableContent += `<tr><td>${item.quantity}</td><td>${item.name}${item.note ? `<br>- Note: ${item.note}` : ''}</td></tr>`;
+                                if (item.modifiers && item.modifiers.length > 0) {
+                                    item.modifiers.forEach(mod => {
+                                        tableContent += `<tr><td></td><td>- ${mod.name}</td></tr>`;
+                                    });
+                                }
+                            });
+                            table.innerHTML = tableContent;
+        
+                            orderDiv.innerHTML = `
+                                <strong>${order.given_name}</strong>
+                                ${new Date(order.created_at).toLocaleTimeString()}<br>
+                            `;
+                            orderDiv.appendChild(table);
+                            const button = document.createElement('button');
+                            button.onclick = function() { markComplete(order.order_id); };
+                            button.innerText = 'Mark Complete';
+                            orderDiv.appendChild(button);
+                            container.appendChild(orderDiv);
                         });
-                        table.innerHTML = tableContent;
-    
-                        orderDiv.innerHTML = `
-                            <strong>${order.given_name}</strong>
-                            ${new Date(order.created_at).toLocaleTimeString()}<br>
-                        `;
-                        orderDiv.appendChild(table);
-                        const button = document.createElement('button');
-                        button.onclick = function() { markComplete(order.order_id); };
-                        button.innerText = 'Mark Complete';
-                        orderDiv.appendChild(button);
-                        container.appendChild(orderDiv);
-                    });
+                    })
+                    .catch(error => console.error('Error fetching orders:', error));
+            }
+        
+            function markComplete(orderId) {
+                fetch('/api/markComplete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ orderId })
                 })
-                .catch(error => console.error('Error fetching orders:', error));
-        }
-    
-        function markComplete(orderId) {
-            fetch('/api/markComplete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ orderId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Order marked as complete:', data);
-                fetchOrders(); // Refresh the list
-            })
-            .catch(error => console.error('Error marking order complete:', error));
-        }
-    
-        window.markComplete = markComplete; // Expose function to global scope
-    
-        let fetchTimer = setInterval(fetchOrders, fetchInterval);
-    
-        fetchRateSlider.oninput = function() {
-            rateDisplay.textContent = this.value;
-            fetchInterval = parseInt(this.value) * 1000;
-            clearInterval(fetchTimer);
-            fetchTimer = setInterval(fetchOrders, fetchInterval);
-        };
-    
-        fetchOrders(); // Initial fetch
-    });
-    </script>
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Order marked as complete:', data);
+                    fetchOrders(); // Refresh the list
+                })
+                .catch(error => console.error('Error marking order complete:', error));
+            }
+        
+            window.markComplete = markComplete; // Expose function to global scope
+        
+            let fetchTimer = setInterval(fetchOrders, fetchInterval);
+        
+            fetchRateSlider.oninput = function() {
+                rateDisplay.textContent = this.value;
+                fetchInterval = parseInt(this.value) * 1000;
+                clearInterval(fetchTimer);
+                fetchTimer = setInterval(fetchOrders, fetchInterval);
+            };
+        
+            fetchOrders(); // Initial fetch
+        });
+        </script>
+</body>
+</html>
