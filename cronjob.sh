@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Add the node bin directory to the PATH
-PATH=$PATH:/home/user/.nvm/versions/node/v21.5.0/bin
+PATH=$PATH:~/.nvm/versions/node/v21.5.0/bin
 
 # Check if pm2 is running
 ~/.nvm/versions/node/v21.5.0/bin/pm2 ps | grep 'KDS'
