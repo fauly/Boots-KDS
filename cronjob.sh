@@ -1,3 +1,4 @@
+#!/bin/bash
 PATH=$PATH:/home/user/.nvm/versions/node/v21.5.0/bin
 pm2 ps | grep 'KDS'
 if [ $? -eq 0 ]; then
