@@ -14,21 +14,23 @@ log_message() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> $LOG_FILE
 }
 
-# Check if pm2 is running
-$PM2 ps | grep 'KDS'
+# Check if the KDS process is running
+$PM2 describe KDS > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-  log_message "Process running."
+  log_message "Process 'KDS' is running."
   # Optional: Save PM2 process list to synchronize
   $PM2 save
 else
-  log_message "Process not running. Starting process."
+  log_message "Process 'KDS' is not running. Starting process."
   cd /home/h80bi8l0u1q9/public_html/kds.dirtyboots.cafe
-  $PM2 start pm2.config.js --env production
+  START_OUTPUT=$($PM2 start pm2.config.js --env production 2>&1)
   if [ $? -eq 0 ]; then
-    log_message "Process started successfully."
+    log_message "Process 'KDS' started successfully."
+    log_message "Startup output: $START_OUTPUT"
     # Save PM2 process list after starting the process
     $PM2 save
   else
-    log_message "Failed to start the process."
+    log_message "Failed to start process 'KDS'."
+    log_message "Startup output: $START_OUTPUT"
   fi
 fi
